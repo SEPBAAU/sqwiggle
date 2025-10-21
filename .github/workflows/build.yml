@@ -2,15 +2,32 @@ name: build-aflw
 on:
   workflow_dispatch:
   schedule:
-    - cron: "15 21 * * *"  # ~7:45am Adelaide time (daily auto-update)
+    - cron: "15 21 * * *"  # ~7:45am Adelaide time
+
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
+
       - uses: r-lib/actions/setup-r@v2
+
+      # This installs R packages AND the required system libraries (e.g., libcurl)
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: |
+            any::fitzRoy
+            any::elo
+            any::dplyr
+            any::tidyr
+            any::stringr
+            any::lubridate
+          needs: check
+
       - name: Build CSVs
         run: Rscript aflw_build_outputs.R
+
       - name: Commit CSVs
         run: |
           git config user.name "github-actions"
