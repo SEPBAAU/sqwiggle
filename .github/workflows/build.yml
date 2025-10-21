@@ -2,23 +2,20 @@ name: build-aflw
 on:
   workflow_dispatch:
   schedule:
-    - cron: "15 21 * * *"  # ~7:45am Adelaide time (runs daily)
+    - cron: "15 21 * * *"  # ~7:45am Adelaide time daily
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
-
       - uses: r-lib/actions/setup-r@v2
 
-      # Install R packages *and* required system libraries (libcurl, etc.)
+      # Installs R packages + system libs automatically (libcurl, etc.)
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           extra-packages: |
             any::fitzRoy
-            any::elo
             any::dplyr
             any::tidyr
             any::stringr
@@ -32,6 +29,7 @@ jobs:
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git add data/aflw_fixtures_all.csv data/aflw_predictions_upcoming.csv
+          git add data/aflw_fixtures_all.csv
+          git add data/aflw_predictions_upcoming.csv || true
           git commit -m "Update AFLW CSVs" || echo "No changes"
           git push
