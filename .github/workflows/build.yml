@@ -2,26 +2,32 @@ name: build-aflw
 on:
   workflow_dispatch:
   schedule:
-    - cron: "15 21 * * *"  # ~7:45am Adelaide time daily
+    - cron: "15 21 * * *"  # daily ~7:45am Adelaide time
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
+
       - uses: r-lib/actions/setup-r@v2
 
-      # Installs R packages + system libs automatically (libcurl, etc.)
-      - uses: r-lib/actions/setup-r-dependencies@v2
-        with:
-          extra-packages: |
-            any::fitzRoy
-            any::dplyr
-            any::tidyr
-            any::stringr
-            any::lubridate
-          needs: check
+      # System libraries needed by CRAN packages (curl/xml2/etc.)
+      - name: Install system libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libcurl4-openssl-dev libssl-dev libxml2-dev \
+            libfontconfig1-dev libharfbuzz-dev libfribidi-dev \
+            libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev
 
+      # Install ONLY the packages we need (ignore the repo's DESCRIPTION)
+      - name: Install CRAN packages
+        run: |
+          Rscript -e "install.packages(c('fitzRoy','dplyr','tidyr','stringr','lubridate'), repos='https://cloud.r-project.org')"
+
+      # Build the CSVs
       - name: Build CSVs
         run: Rscript aflw_build_outputs.R
 
@@ -29,7 +35,7 @@ jobs:
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git add data/aflw_fixtures_all.csv
+          git add data/aflw_fixtures_all.csv || true
           git add data/aflw_predictions_upcoming.csv || true
           git commit -m "Update AFLW CSVs" || echo "No changes"
           git push
