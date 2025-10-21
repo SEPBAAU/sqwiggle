@@ -3,9 +3,6 @@
 # Depends on fitzRoy (data) + elo (ratings).
 options(warn = 1)
 
-install.packages(c("fitzRoy","elo","dplyr","tidyr","stringr","lubridate"),
-                 repos = "https://cloud.r-project.org")
-
 suppressPackageStartupMessages(library(fitzRoy))
 suppressPackageStartupMessages(library(elo))
 suppressPackageStartupMessages(library(dplyr))
